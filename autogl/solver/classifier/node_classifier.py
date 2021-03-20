@@ -356,10 +356,14 @@ class AutoNodeClassifier(BaseClassifier):
             self.trained_models[name] = optimized
 
         # fit the ensemble model
+        val_ys = []
+        for data in utils.graph_get_split(self.dataset, 'val'):
+            val_ys.extend(data.y.tolist())
+
         if self.ensemble_module is not None:
             performance = self.ensemble_module.fit(
                 result_valid,
-                self.dataset[0].y[self.dataset[0].val_mask].cpu().numpy(),
+                np.array(val_ys),
                 names,
                 evaluator_list,
                 n_classes=dataset.num_classes,
