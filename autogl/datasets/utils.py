@@ -5,6 +5,27 @@ from torch_geometric.data import DataLoader
 from sklearn.model_selection import StratifiedKFold
 
 
+def get_label(dataset, mask="all") -> torch.Tensor:
+    """
+    get label sequence of current dataset
+
+    Parameters
+    ----------
+    dataset: `autogl.datasets.Dataset`
+        The dataset needed to parse label from
+
+    mask: `str` or array-like
+        The mask of datasets. Choosen from `[all, train, val, test]` if `str`, or pass
+        an array to specify needed masks.
+
+    Returns
+    -------
+    label: torch.Tensor
+        1D Tensor. The label of dataset under given mask.
+    """
+    raise NotImplementedError()
+
+
 def get_label_number(dataset):
     r"""Get the number of labels in this dataset as dict."""
     label_num = {}

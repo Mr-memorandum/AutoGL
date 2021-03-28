@@ -334,7 +334,9 @@ class BaseNodeClassificationTrainer(BaseTrainer):
         init=True,
         feval=["acc"],
         loss="nll_loss",
+        inductive=False,
     ):
+        self.inductive = inductive
         self.num_features = num_features
         self.num_classes = num_classes
         device = (

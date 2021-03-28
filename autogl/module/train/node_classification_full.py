@@ -62,6 +62,23 @@ class NodeClassificationFullTrainer(BaseNodeClassificationTrainer):
 
     init: ``bool``
         If True(False), the model will (not) be initialized.
+
+    feval: list of `str` or `autogl.module.train.evaluation`
+        Evaluation metrics used to evaluate performances. Will use the first metric
+        as major to sort/compare different trainers while keeping all metrics' performance.
+        Default `[LogLoss]`
+
+    loss: `str`
+        The loss function trainer use. Should be a member of `torch.nn.functional`.
+        Default `nll_loss`.
+
+    lr_scheduler_type: `str` (Optional)
+        The lr scheduler used in current trainer.
+        Currently support `[steplr, multisteplr, exponentiallr, reduceonpleatu]`.
+        If `None`, no scheduler is used. Default `None`
+
+    inductive: `boolean`
+        Whether trained in inductive mode. Default `False`
     """
 
     def __init__(
@@ -79,6 +96,7 @@ class NodeClassificationFullTrainer(BaseNodeClassificationTrainer):
         feval=[Logloss],
         loss="nll_loss",
         lr_scheduler_type=None,
+        inductive=False,
         *args,
         **kwargs
     ):
@@ -90,6 +108,7 @@ class NodeClassificationFullTrainer(BaseNodeClassificationTrainer):
             init=init,
             feval=feval,
             loss=loss,
+            inductive=inductive,
         )
 
         # init model
