@@ -103,7 +103,7 @@ class AutoNodeClassifier(BaseClassifier):
         self.data = None
 
     def _init_graph_module(
-        self, graph_models, num_classes, num_features, feval, device, loss
+        self, graph_models, num_classes, num_features, feval, device, loss, inductive
     ) -> "AutoNodeClassifier":
         # load graph network module
         self.graph_model_list = []
@@ -148,6 +148,7 @@ class AutoNodeClassifier(BaseClassifier):
                         loss=loss,
                         feval=feval,
                         device=device,
+                        inductive=inductive,
                     )
                     self.graph_model_list.append(model)
                 else:
@@ -183,6 +184,7 @@ class AutoNodeClassifier(BaseClassifier):
                     feval=feval,
                     device=device,
                     init=False,
+                    inductive=inductive,
                 )
             # set trainer hp space
             if self._trainer_hp_space is not None:
@@ -205,6 +207,7 @@ class AutoNodeClassifier(BaseClassifier):
         val_split=None,
         balanced=True,
         evaluation_method="infer",
+        inductive=False,
         seed=None,
     ) -> "AutoNodeClassifier":
         """
@@ -242,6 +245,13 @@ class AutoNodeClassifier(BaseClassifier):
             A (list of) evaluation method for current solver. If ``infer``, will automatically
             determine. Default ``infer``.
 
+        inductive: `bool` or `auto`
+            Whether to fit under inductive settings. If `True`, will only use nodes specified
+            by datasets (by `ind_train_mask`, `ind_val_mask`, `ind_test_mask`) when performing
+            train/val/test. If `False`, will use the whole datasets as input. If `auto`, will
+            automatically infer from datasets: only datasets containing one graph and with no
+            `ind_xxx_mask` will be inferred as transductive.
+
         seed: int (Optional)
             The random seed. If set to ``None``, will run everything at random.
             Default ``None``.
@@ -256,6 +266,13 @@ class AutoNodeClassifier(BaseClassifier):
         if time_limit < 0:
             time_limit = 3600 * 24
         time_begin = time.time()
+
+        if inductive == "auto":
+            # infer from dataset
+            if len(dataset) == 1 and not hasattr(dataset, "ind_train_mask"):
+                inductive = False
+            else:
+                inductive = True
 
         # initialize leaderboard
         if evaluation_method == "infer":
@@ -278,23 +295,37 @@ class AutoNodeClassifier(BaseClassifier):
         # set up the dataset
         if train_split is not None and val_split is not None:
             size = dataset.data.x.shape[0]
-            if balanced:
+            if len(dataset) > 1:
+                # when dataset is multi-graph, default to graph version of masks
+                if balanced:
+                    LOGGER.warning(
+                        "multi-graph node classification do not support balance split! "
+                        "Falling back non-balance version..."
+                    )
                 train_split = (
-                    train_split if train_split > 1 else int(train_split * size)
+                    train_split if train_split < 1 else train_split / len(dataset)
                 )
-                val_split = val_split if val_split > 1 else int(val_split * size)
-                utils.random_splits_mask_class(
-                    dataset,
-                    num_train_per_class=train_split // dataset.num_classes,
-                    num_val_per_class=val_split // dataset.num_classes,
-                    seed=seed,
-                )
+                val_split = val_split if val_split < 1 else val_split / len(dataset)
+                utils.graph_random_splits(dataset, train_split, val_split, seed=seed)
             else:
-                train_split = train_split if train_split < 1 else train_split / size
-                val_split = val_split if val_split < 1 else val_split / size
-                utils.random_splits_mask(
-                    dataset, train_ratio=train_split, val_ratio=val_split
-                )
+                # one graph, random split nodes
+                if balanced:
+                    train_split = (
+                        train_split if train_split > 1 else int(train_split * size)
+                    )
+                    val_split = val_split if val_split > 1 else int(val_split * size)
+                    utils.random_splits_mask_class(
+                        dataset,
+                        num_train_per_class=train_split // dataset.num_classes,
+                        num_val_per_class=val_split // dataset.num_classes,
+                        seed=seed,
+                    )
+                else:
+                    train_split = train_split if train_split < 1 else train_split / size
+                    val_split = val_split if val_split < 1 else val_split / size
+                    utils.random_splits_mask(
+                        dataset, train_ratio=train_split, val_ratio=val_split
+                    )
         else:
             assert hasattr(dataset.data, "train_mask") and hasattr(
                 dataset.data, "val_mask"
@@ -309,7 +340,7 @@ class AutoNodeClassifier(BaseClassifier):
             dataset = self.feature_module.fit_transform(dataset, inplace=inplace)
 
         self.dataset = dataset
-        assert self.dataset[0].x is not None, (
+        assert self.dataset.data.x is not None, (
             "Does not support fit on non node-feature dataset!"
             " Please add node features to dataset or specify feature engineers that generate"
             " node features."
@@ -323,6 +354,7 @@ class AutoNodeClassifier(BaseClassifier):
             feval=evaluator_list,
             device=self.runtime_device,
             loss="cross_entropy" if not hasattr(dataset, "loss") else dataset.loss,
+            inductive=inductive,
         )
 
         # train the models and tune hpo
@@ -357,15 +389,13 @@ class AutoNodeClassifier(BaseClassifier):
             )
             self.trained_models[name] = optimized
 
-        # fit the ensemble model
-        val_ys = []
-        for data in utils.graph_get_split(self.dataset, 'val'):
-            val_ys.extend(data.y.tolist())
-
         if self.ensemble_module is not None:
+            # fit the ensemble model
+            val_ys = utils.get_label(dataset=self.dataset, mask="val")
+
             performance = self.ensemble_module.fit(
                 result_valid,
-                np.array(val_ys),
+                val_ys.cpu().numpy(),
                 names,
                 evaluator_list,
                 n_classes=dataset.num_classes,
