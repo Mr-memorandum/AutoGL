@@ -4,7 +4,7 @@ import torch_geometric
 import typing as _typing
 from . import register_model
 from .base import activate_func, ClassificationModel
-from ...utils import get_logger
+from ....utils import get_logger
 
 LOGGER = get_logger("GCNModel")
 

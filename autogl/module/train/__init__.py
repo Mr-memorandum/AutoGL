@@ -1,28 +1,6 @@
-TRAINER_DICT = {}
-from .base import (
-    BaseTrainer,
-    Evaluation,
-    BaseNodeClassificationTrainer,
-    BaseGraphClassificationTrainer,
-)
-from .evaluation import get_feval
+from ...backend import __BACKEND__
 
-
-def register_trainer(name):
-    def register_trainer_cls(cls):
-        if name in TRAINER_DICT:
-            raise ValueError("Cannot register duplicate trainer ({})".format(name))
-        if not issubclass(cls, BaseTrainer):
-            raise ValueError(
-                "Trainer ({}: {}) must extend BaseTrainer".format(name, cls.__name__)
-            )
-        TRAINER_DICT[name] = cls
-        return cls
-
-    return register_trainer_cls
-
-
-from .graph_classification_full import GraphClassificationFullTrainer
-from .node_classification_full import NodeClassificationFullTrainer
-from .node_classification_trainer import *
-from .evaluation import get_feval, Acc, Auc, Logloss
+if __BACKEND__ == 'pyg':
+    from .pyg import *
+elif __BACKEND__ == 'dgl':
+    from .dgl import *

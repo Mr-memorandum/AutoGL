@@ -1,9 +1,8 @@
 import os.path as osp
-import sys
 
 import torch
 
-from ..data import Data, Dataset, download_url
+from ...data import Data, Dataset, download_url
 
 from . import register_dataset
 

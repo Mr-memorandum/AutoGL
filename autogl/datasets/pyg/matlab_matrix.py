@@ -7,7 +7,7 @@ import numpy as np
 import scipy.io
 import torch
 
-from ..data import Data, Dataset, download_url
+from ...data import Data, Dataset, download_url
 
 from . import register_dataset
 

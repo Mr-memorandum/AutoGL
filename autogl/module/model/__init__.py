@@ -1,7 +1,12 @@
-from ._model_registry import MODEL_DICT, ModelUniversalRegistry, register_model
-from .base import BaseModel
-from .topkpool import AutoTopkpool
-from .graph_sage import AutoSAGE
-from .gcn import AutoGCN
-from .gat import AutoGAT
-from .gin import AutoGIN
+"""
+Model
+
+Model module defines the graph representation learning algorithms.
+"""
+
+from ...backend import __BACKEND__
+
+if __BACKEND__ == 'pyg':
+    from .pyg import *
+elif __BACKEND__ == 'dgl':
+    from .dgl import *

@@ -13,12 +13,12 @@ from torch.optim.lr_scheduler import (
     ReduceLROnPlateau,
 )
 import torch.nn.functional as F
-from ..model import MODEL_DICT, BaseModel
+from ...model import MODEL_DICT, BaseModel
 from .evaluation import get_feval, Logloss
 from typing import Union
 from copy import deepcopy
 
-from ...utils import get_logger
+from ....utils import get_logger
 
 LOGGER = get_logger("node classification trainer")
 

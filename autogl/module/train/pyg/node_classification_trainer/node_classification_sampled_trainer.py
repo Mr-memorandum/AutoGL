@@ -9,7 +9,7 @@ from ..base import BaseNodeClassificationTrainer, EarlyStopping, Evaluation
 from ..evaluation import get_feval, Logloss
 from ..sampling.sampler.neighbor_sampler import NeighborSampler
 from ..sampling.sampler.graphsaint_sampler import *
-from ...model import BaseModel
+from ....model import BaseModel
 
 LOGGER: logging.Logger = logging.getLogger("Node classification sampling trainer")
 

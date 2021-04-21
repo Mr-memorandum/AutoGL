@@ -3,9 +3,9 @@ import typing as _typing
 
 import torch
 import pickle
-from ..model import BaseModel, ModelUniversalRegistry
+from ...model import BaseModel, ModelUniversalRegistry
 from .evaluation import Evaluation, get_feval, Acc
-from ...utils import get_logger
+from ....utils import get_logger
 
 LOGGER_ES = get_logger("early-stopping")
 

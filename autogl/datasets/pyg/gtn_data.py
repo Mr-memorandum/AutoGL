@@ -1,8 +1,5 @@
-import sys
-import time
 import os
 import os.path as osp
-import requests
 import shutil
 import tqdm
 import pickle
@@ -10,7 +7,7 @@ import numpy as np
 
 import torch
 
-from ..data import Data, Dataset, download_url
+from ...data import Data, Dataset, download_url
 
 from . import register_dataset
 

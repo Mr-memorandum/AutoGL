@@ -1,7 +1,6 @@
 """
 auto graph model
 a list of models with their hyper parameters
-NOTE: neural architecture search (NAS) maybe included here
 """
 import copy
 import logging

@@ -10,7 +10,7 @@ from torch.nn import Linear
 import torch.nn.functional as F
 from torch_sparse import SparseTensor, matmul
 from torch_geometric.nn.conv import MessagePassing
-from ...utils import get_logger
+from ....utils import get_logger
 
 LOGGER = get_logger("SAGEModel")
 

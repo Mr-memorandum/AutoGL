@@ -8,10 +8,10 @@ from typing import Any, Tuple
 
 import torch
 
-from ..module.feature import FEATURE_DICT
-from ..module.hpo import HPO_DICT
+from ..module.feature import FEATURE_DICT, BaseFeatureAtom
+from ..module.hpo import HPO_DICT, BaseHPOptimizer
 from ..module.model import MODEL_DICT
-from ..module import BaseFeatureAtom, BaseHPOptimizer, BaseTrainer
+from ..module.train import BaseTrainer
 from .utils import Leaderboard
 from ..utils import get_logger
 
