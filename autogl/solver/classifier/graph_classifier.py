@@ -82,6 +82,7 @@ class AutoGraphClassifier(BaseClassifier):
         model_hp_spaces=None,
         size=4,
         device="auto",
+        num_workers=0
     ):
 
         super().__init__(
@@ -98,6 +99,7 @@ class AutoGraphClassifier(BaseClassifier):
         )
 
         self.dataset = None
+        self.num_workers = num_workers
 
     def _init_graph_module(
         self,
@@ -193,6 +195,7 @@ class AutoGraphClassifier(BaseClassifier):
                     device=device,
                     num_graph_features=num_graph_features,
                     init=False,
+                    num_workers=self.num_workers
                 )
             # set trainer hp space
             if self._trainer_hp_space is not None:
